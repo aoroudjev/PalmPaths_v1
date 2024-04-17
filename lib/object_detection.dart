@@ -6,7 +6,6 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 class ObjectDetection {
   static const String _modelPath = 'assets/detect.tflite';
-  //custom_ssd_mobilenet_v2_fpn_lite_320x320.tflite
   static const String _labelPath = 'assets/labelmap.txt';
 
   Interpreter? _interpreter;
@@ -51,22 +50,21 @@ class ObjectDetection {
     // Decoding image
     final image = img.decodeImage(imageData);
 
-    // Resizing image fpr model, [300, 300]
-    // If you use SSD_Mobile_Net_V2 FPN Lite 320 x 320 , please change both the width and height to 320
+    // Resizing image fpr model, [320, 320]
     final imageInput = img.copyResize(
       image!,
       width: 320,
       height: 320,
     );
 
-    // Creating matrix representation, [300, 300, 3]
+    // Creating matrix representation, [320, 320, 3]
     final imageMatrix = List.generate(
       imageInput.height,
       (y) => List.generate(
         imageInput.width,
         (x) {
           final pixel = imageInput.getPixel(x, y);
-          return [pixel.r/255, pixel.g/255, pixel.b/255];
+          return [pixel.r/255, pixel.g/255, pixel.b/255];  // Normalization from model training
         },
       ),
     );
@@ -84,14 +82,9 @@ class ObjectDetection {
     final List<List<int>> locations = boxesTensor
         .map((box) => box.map((value) => ((value * 300).toInt())).toList())
         .toList();
-
-    // Convert class indices to int
+    // Classes is temporary, this model only recognizes palms
     final classes = classesTensor.map((value) => value.toInt()).toList();
-
-    // Number of detections
     final numberOfDetections = output[2].first as double;
-
-    // Get classifcation with label
     final List<String> classification = [];
     for (int i = 0; i < numberOfDetections; i++) {
       classification.add(_labels![classes[i]]);
@@ -111,7 +104,7 @@ class ObjectDetection {
           thickness: 3,
         );
 
-        // Label drawing
+        // Label drawing (will only be palm, this is temporary)
         img.drawString(
           imageInput,
           '${classification[i]} ${scoresTensor[i]}',
@@ -131,11 +124,8 @@ class ObjectDetection {
     List<List<List<num>>> imageMatrix,
   ) {
     log('Running inference...');
-
-    // Set input tensor [1, 320, 320, 3]
     final input = [imageMatrix];
-
-    // Set output tensor
+    // Set output tensor, order different from ssd_mobilenet version 1
     // Scores: [1, 10],
     // Locations: [1, 10, 4],
     // Number of detections: [1],

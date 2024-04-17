@@ -1,9 +1,6 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:static_image_test/object_detection.dart';
-import 'dart:io' show Platform;
+import 'package:static_image_test/detection_widget.dart';
+import 'dart:io';
 
 void main() => runApp(const MyApp());
 
@@ -19,86 +16,118 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.orange,
         ),
       ),
-      home: const MyHome(),
+      home: const MainMenu(),
     );
   }
 }
 
-class MyHome extends StatefulWidget {
-  const MyHome({super.key});
+class MainMenu extends StatelessWidget {
+  const MainMenu({super.key});
 
   @override
-  State<MyHome> createState() => _MyHomeState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFDAD3C1),
+      appBar: AppBar(
+        title: const Text('Main Menu'),
+        backgroundColor: Colors.black.withOpacity(0.5),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/images/hand_logo_large.png',
+              height: 350,
+            ),
+            const SizedBox(
+              height: 50,
+            ),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const DetectorWidget()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  fixedSize: const Size(200, 50),
+                  backgroundColor: Color(0xFF918B7D),
+                  elevation: 10,
+                ),
+                child: const Text(
+                  'Start',
+                  style: TextStyle(fontSize: 30, color: Color(0xFF1D1B17)),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const HistoryScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  fixedSize: const Size(200, 50),
+                  backgroundColor: Color(0xFF918B7D),
+                  elevation: 10,
+                ),
+                child: const Text(
+                  'History',
+                  style: TextStyle(fontSize: 30, color: Color(0xFF1D1B17)),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: ElevatedButton(
+                onPressed: () {
+                  exit(0);
+                },
+                style: ElevatedButton.styleFrom(
+                  fixedSize: const Size(200, 50),
+                  backgroundColor: Color(0xFF918B7D),
+                  elevation: 10,
+                ),
+                child: const Text(
+                  'Quit',
+                  style: TextStyle(fontSize: 30, color: Color(0xFF1D1B17)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _MyHomeState extends State<MyHome> {
-  final imagePicker = ImagePicker();
-
-  ObjectDetection? objectDetection;
-
-  Uint8List? image;
-
-  @override
-  void initState() {
-    super.initState();
-    objectDetection = ObjectDetection();
-  }
+class HistoryScreen extends StatelessWidget {
+  const HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset('assets/images/tfl_logo.png'),
+        title: const Text('History'),
         backgroundColor: Colors.black.withOpacity(0.5),
       ),
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            Expanded(
-              child: Center(
-                child: (image != null) ? Image.memory(image!) : Container(),
-              ),
-            ),
-            SizedBox(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  if (Platform.isAndroid || Platform.isIOS)
-                    IconButton(
-                      onPressed: () async {
-                        final result = await imagePicker.pickImage(
-                          source: ImageSource.camera,
-                        );
-                        if (result != null) {
-                          image = objectDetection!.analyseImage(result.path);
-                          setState(() {});
-                        }
-                      },
-                      icon: const Icon(
-                        Icons.camera,
-                        size: 64,
-                      ),
-                    ),
-                  IconButton(
-                    onPressed: () async {
-                      final result = await imagePicker.pickImage(
-                        source: ImageSource.gallery,
-                      );
-                      if (result != null) {
-                        image = objectDetection!.analyseImage(result.path);
-                        setState(() {});
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.photo,
-                      size: 64,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+      body: const Center(
+        child: Text('History Screen'),
       ),
     );
   }
