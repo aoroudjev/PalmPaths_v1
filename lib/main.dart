@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:static_image_test/detection_widget.dart';
+import 'package:static_image_test/ui/detection_widget.dart';
 import 'dart:io';
 
 void main() => runApp(const MyApp());

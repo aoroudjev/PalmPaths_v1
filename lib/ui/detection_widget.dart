@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:static_image_test/object_detection.dart';
+import 'package:static_image_test/services/object_detection.dart';
 
 class DetectorWidget extends StatefulWidget {
   const DetectorWidget({super.key});
@@ -39,13 +39,20 @@ class _DetectorWidgetState extends State<DetectorWidget> {
             Center(
               child: Text(
                 "NOTE: If you are using your camera, TURN ON FLASH. Lighting is important for the model to work correctly.",
-                style: TextStyle(fontSize: 25, color: Color(0xFF525F61)),
+                style: TextStyle(fontSize: 25, color: Color(0xFF1D1B17)),
                 textAlign: TextAlign.center,
               ),
             ),
             Expanded(
               child: Center(
-                child: (image != null) ? Image.memory(image!) : Container(),
+                child: (image != null)
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                            Image.memory(image!),
+                            const Icon(Icons.done, size: 64, color: Color(0xFF525F61))
+                          ])
+                    : Container(),
               ),
             ),
             SizedBox(
@@ -66,6 +73,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                       icon: const Icon(
                         Icons.camera,
                         size: 64,
+                        color: Color(0xFF1D1B17),
                       ),
                     ),
                   IconButton(
@@ -81,6 +89,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                     icon: const Icon(
                       Icons.photo,
                       size: 64,
+                      color: Color(0xFF1D1B17),
                     ),
                   ),
                 ],
