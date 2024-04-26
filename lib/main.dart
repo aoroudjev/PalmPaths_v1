@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+// TODO: Extract to separate file.
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key});
 
@@ -36,6 +37,7 @@ class MainMenu extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Main logo
             Image.asset(
               'assets/images/hand_logo_large.png',
               height: 350,
@@ -43,7 +45,7 @@ class MainMenu extends StatelessWidget {
             const SizedBox(
               height: 50,
             ),
-
+            // Buttons with padding
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: ElevatedButton(
@@ -116,6 +118,7 @@ class MainMenu extends StatelessWidget {
   }
 }
 
+// TODO: Implement History element (Save past readings)
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
