@@ -4,6 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+class Detection {
+  final Uint8List image;
+  final double score;
+  final List<int> box;  // [x1, y1, x2, y2]
+
+  Detection(this.image, this.score, this.box);
+}
+
 class ObjectDetection {
   static const String _modelPath = 'assets/detect.tflite';
   static const String _labelPath = 'assets/labelmap.txt';
@@ -42,7 +50,7 @@ class ObjectDetection {
     _labels = labelsRaw.split('\n');
   }
 
-  Uint8List analyseImage(String imagePath) {
+  Detection? analyseImage(String imagePath) {
     log('Analysing image...');
     // Reading image bytes from file
     final imageData = File(imagePath).readAsBytesSync();
@@ -113,11 +121,19 @@ class ObjectDetection {
           y: locations[i][0] + 7,
           color: img.ColorRgb8(0, 255, 0),
         );
+
+        List<int> box = boxesTensor[i].map((value) => (value * 320).toInt()).toList();
+        Uint8List image = img.encodeJpg(imageInput);
+        double score = scoresTensor[i];
+
+
+        log('Done.');
+        return Detection(image, score, box);
       }
     }
+    log('No Detection Found.');
+    return null;
 
-    log('Done.');
-    return img.encodeJpg(imageInput);
   }
 
   List<List<Object>> _runInference(

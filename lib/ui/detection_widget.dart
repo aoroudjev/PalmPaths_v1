@@ -66,7 +66,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                           source: ImageSource.camera,
                         );
                         if (result != null) {
-                          image = objectDetection!.analyseImage(result.path);
+                          image = objectDetection!.analyseImage(result.path)?.image;
                           setState(() {});
                         }
                       },
@@ -82,7 +82,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                         source: ImageSource.gallery,
                       );
                       if (result != null) {
-                        image = objectDetection!.analyseImage(result.path);
+                        image = objectDetection!.analyseImage(result.path)?.image;
                         setState(() {});
                       }
                     },
