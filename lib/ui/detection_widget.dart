@@ -32,6 +32,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
         title: Text('Detector'),
         backgroundColor: Colors.black.withOpacity(0.5),
       ),
+      // Main result column
       body: SafeArea(
         child: Column(
           children: <Widget>[
@@ -76,6 +77,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
               ),
 
             ),
+            // Image selection function buttons
             SizedBox(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
