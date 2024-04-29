@@ -6,10 +6,10 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 class Detection {
   final Uint8List image;
-  final double score;
+  final Uint8List imageDetected;
   final List<int> box;  // [x1, y1, x2, y2]
 
-  Detection(this.image, this.score, this.box);
+  Detection(this.image, this.imageDetected, this.box);
 }
 
 class ObjectDetection {
@@ -123,12 +123,12 @@ class ObjectDetection {
         );
 
         List<int> box = boxesTensor[i].map((value) => (value * 320).toInt()).toList();
-        Uint8List image = img.encodeJpg(imageInput);
-        double score = scoresTensor[i];
+        Uint8List imageDetected = img.encodeJpg(imageInput);
+        Uint8List imageRaw = img.encodeJpg(image);
 
 
         log('Done.');
-        return Detection(image, score, box);
+        return Detection(imageRaw, imageDetected, box);
       }
     }
     log('No Detection Found.');
