@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:static_image_test/services/object_detection.dart';
+import 'package:static_image_test/ui/results_widget.dart';
 
 class DetectorWidget extends StatefulWidget {
   const DetectorWidget({super.key});
@@ -17,6 +17,7 @@ class _DetectorWidgetState extends State<DetectorWidget> {
   final imagePicker = ImagePicker();
   ObjectDetection? objectDetection;
   Uint8List? image;
+  Detection? results;
 
   @override
   void initState() {
@@ -64,18 +65,26 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                 child: Center(
                   child: (image != null)
                       ? Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Image.memory(image!),
-                        const Icon(Icons.done,
-                            size: 64, color: Color(0xFF525F61))
-                      ])
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                              Image.memory(image!),
+                              IconButton(
+                                icon: Icon(Icons.done,
+                                    size: 64, color: Color(0xFF525F61)),
+                                onPressed: () async {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ResultsWidget(
+                                              detectionResults: results!)));
+                                },
+                              )
+                            ])
                       : Container(
-                    child: Text("Please select or take an image."),
-                  ),
+                          child: Text("Please select or take an image."),
+                        ),
                 ),
               ),
-
             ),
             // Image selection function buttons
             SizedBox(
@@ -89,10 +98,10 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                           source: ImageSource.camera,
                         );
                         if (result != null) {
-                          image = objectDetection!
-                              .analyseImage(result.path)
-                              ?.imageDetected;
-                          setState(() {});
+                          results = objectDetection!.analyseImage(result.path);
+                          setState(() {
+                            image = results?.imageDetected;
+                          });
                         }
                       },
                       icon: const Icon(
@@ -107,10 +116,10 @@ class _DetectorWidgetState extends State<DetectorWidget> {
                         source: ImageSource.gallery,
                       );
                       if (result != null) {
-                        image = objectDetection!
-                            .analyseImage(result.path)
-                            ?.imageDetected;
-                        setState(() {});
+                        results = objectDetection!.analyseImage(result.path);
+                        setState(() {
+                          image = results?.imageDetected;
+                        });
                       }
                     },
                     icon: const Icon(
