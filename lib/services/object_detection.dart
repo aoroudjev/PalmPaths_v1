@@ -88,7 +88,7 @@ class ObjectDetection {
 
     // Process bounding boxes
     final List<List<int>> locations = boxesTensor
-        .map((box) => box.map((value) => ((value * 300).toInt())).toList())
+        .map((box) => box.map((value) => ((value * 320).toInt())).toList())
         .toList();
     // Classes is temporary, this model only recognizes palms
     final classes = classesTensor.map((value) => value.toInt()).toList();
@@ -132,7 +132,9 @@ class ObjectDetection {
       }
     }
     log('No Detection Found.');
-    return null;
+    Uint8List imageRaw = img.encodeJpg(image);
+    Uint8List imageResized = img.encodeJpg(imageInput);
+    return Detection(imageRaw, imageResized, [0,0,320,320]);
 
   }
 
