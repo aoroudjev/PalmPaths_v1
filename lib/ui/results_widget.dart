@@ -10,6 +10,23 @@ class ResultsWidget extends StatefulWidget {
 }
 
 class _ResultsWidgetState extends State<ResultsWidget> {
+
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // _processImage();
+  }
+
+  void _processImage() {
+
+
+    setState(() {
+      _isLoading =false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // Assuming Detection has fields like title, description, and maybe an image
@@ -23,7 +40,12 @@ class _ResultsWidgetState extends State<ResultsWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Image.memory(widget.detectionResults.image),
+            if (_isLoading)
+              Center(
+                child: CircularProgressIndicator(color: Color(0xFF1D1B17),),
+              )
+            else
+              Image.memory(widget.detectionResults.image)
           ],
         ),
       ),
