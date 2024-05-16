@@ -5,7 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 class Detection {
-  final Uint8List image;
+  final img.Image image;
   final Uint8List imageDetected;
   final List<int> box;  // [x1, y1, x2, y2]
 
@@ -128,13 +128,14 @@ class ObjectDetection {
 
 
         log('Done.');
-        return Detection(imageRaw, imageDetected, box);
+        return Detection(image, imageDetected, box);
       }
     }
+
     log('No Detection Found.');
     Uint8List imageRaw = img.encodeJpg(image);
     Uint8List imageResized = img.encodeJpg(imageInput);
-    return Detection(imageRaw, imageResized, [0,0,320,320]);
+    return Detection(image, imageResized, [0,0,320,320]);
 
   }
 
