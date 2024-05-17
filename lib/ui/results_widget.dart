@@ -26,38 +26,48 @@ class _ResultsWidgetState extends State<ResultsWidget> {
   }
 
   Future<void> _processImage() async {
+    // Set state so widget loads
     setState(() {
       _isLoading = true;
     });
 
-    //TODO: Image processing logic
     img.Image originalImage = widget.detectionResults.image;
+    img.Image? detectedImage = img.decodeImage(widget.detectionResults.imageDetected);
     List<int> boxCoords = widget.detectionResults.box;
 
     log("Original image dimensions: ${originalImage.width}x${originalImage.height}");
+    log("Detected image dimensions: ${detectedImage!.width}x${detectedImage.height}");
     log("Box coordinates: $boxCoords");
 
-    int x = boxCoords[0];
-    int y = boxCoords[1];
-    int width = boxCoords[2] - boxCoords[0];
-    int height = boxCoords[3] - boxCoords[1];
+    // Calculate the scaling factors
+    double scaleX = originalImage.width / detectedImage.width;
+    double scaleY = originalImage.height / detectedImage.height;
 
-    int xScalar = (originalImage.width/320) as int;
-    int yScalar = (originalImage.height/320) as int;
+    // Scale the box coordinates
+    int x1 = (boxCoords[0] * scaleX).round();
+    int y1 = (boxCoords[1] * scaleY).round();
+    int x2 = (boxCoords[2] * scaleX).round();
+    int y2 = (boxCoords[3] * scaleY).round();
 
-    log("Cropping image at: x=$x, y=$y, width=$width, height=$height");
+    int width = x2 - x1;
+    int height = y2 - y1;
+
+
+    log("Cropping image at: x=$x1, y=$y1, width=$width, height=$height");
 
     croppedImage = img.copyCrop(
         originalImage,
-        x: x * xScalar,
-        y: y * yScalar,
-        width: width * xScalar,
-        height: height * yScalar
+        x: x1,
+        y: y1,
+        width: width,
+        height: height
     );
+
     encodedImage = Uint8List.fromList(img.encodeJpg(croppedImage));
 
     await Future.delayed(Duration(seconds: 1));
 
+    // Update
     setState(() {
       _isLoading = false;
     });
