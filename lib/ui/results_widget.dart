@@ -35,6 +35,8 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     img.Image? detectedImage = img.decodeImage(widget.detectionResults.imageDetected);
     List<int> boxCoords = widget.detectionResults.box;
 
+    assert(detectedImage?.width == 320 && detectedImage?.height == 320, "Detected image dimensions are not 320x320");
+
     log("Original image dimensions: ${originalImage.width}x${originalImage.height}");
     log("Detected image dimensions: ${detectedImage!.width}x${detectedImage.height}");
     log("Box coordinates: $boxCoords");
@@ -52,7 +54,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     int width = x2 - x1;
     int height = y2 - y1;
 
-
+    log("Scalars: x=$scaleX, y=$scaleY");
     log("Cropping image at: x=$x1, y=$y1, width=$width, height=$height");
 
     croppedImage = img.copyCrop(

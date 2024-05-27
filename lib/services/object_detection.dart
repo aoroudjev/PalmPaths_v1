@@ -7,7 +7,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 class Detection {
   final img.Image image;
   final Uint8List imageDetected;
-  final List<int> box;  // [x1, y1, x2, y2]
+  final List<int> box; // [x1, y1, x2, y2]
 
   Detection(this.image, this.imageDetected, this.box);
 }
@@ -72,7 +72,11 @@ class ObjectDetection {
         imageInput.width,
         (x) {
           final pixel = imageInput.getPixel(x, y);
-          return [pixel.r/255, pixel.g/255, pixel.b/255];  // Normalization from model training
+          return [
+            pixel.r / 255,
+            pixel.g / 255,
+            pixel.b / 255
+          ]; // Normalization from model training
         },
       ),
     );
@@ -102,12 +106,17 @@ class ObjectDetection {
     for (var i = 0; i < numberOfDetections; i++) {
       if (scoresTensor[i] > 0.85) {
         // Rectangle drawing
+        int x1 = locations[i][1];
+        int y1 = locations[i][0];
+        int x2 = locations[i][3];
+        int y2 = locations[i][2];
+
         img.drawRect(
           imageInput,
-          x1: locations[i][1],
-          y1: locations[i][0],
-          x2: locations[i][3],
-          y2: locations[i][2],
+          x1: x1,
+          y1: y1,
+          x2: x2,
+          y2: y2,
           color: img.ColorRgb8(0, 255, 0),
           thickness: 3,
         );
@@ -122,10 +131,8 @@ class ObjectDetection {
           color: img.ColorRgb8(0, 255, 0),
         );
 
-        List<int> box = boxesTensor[i].map((value) => (value * 320).toInt()).toList();
+        List<int> box = [x1, y1, x2, y2];
         Uint8List imageDetected = img.encodeJpg(imageInput);
-        Uint8List imageRaw = img.encodeJpg(image);
-
 
         log('Done.');
         return Detection(image, imageDetected, box);
@@ -133,10 +140,8 @@ class ObjectDetection {
     }
 
     log('No Detection Found.');
-    Uint8List imageRaw = img.encodeJpg(image);
     Uint8List imageResized = img.encodeJpg(imageInput);
-    return Detection(image, imageResized, [0,0,320,320]);
-
+    return Detection(image, imageResized, [0, 0, 320, 320]);
   }
 
   List<List<Object>> _runInference(
