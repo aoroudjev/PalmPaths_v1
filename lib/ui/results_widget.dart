@@ -65,6 +65,10 @@ class _ResultsWidgetState extends State<ResultsWidget> {
         height: height
     );
 
+    croppedImage = img.grayscale(croppedImage);
+    // croppedImage = img.sobel(croppedImage,amount: 1);
+    croppedImage = img.luminanceThreshold(croppedImage, threshold: 0.76);
+
     encodedImage = Uint8List.fromList(img.encodeJpg(croppedImage));
 
     await Future.delayed(Duration(seconds: 1));
