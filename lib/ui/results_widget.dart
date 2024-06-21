@@ -16,13 +16,25 @@ class ResultsWidget extends StatefulWidget {
 
 class _ResultsWidgetState extends State<ResultsWidget> {
   bool _isLoading = true;
-  late img.Image croppedImage;
   late Uint8List encodedImage;
 
   @override
   void initState() {
     super.initState();
     _processImage();
+  }
+
+  img.Image toGrayscaleUsingBlueChannel(img.Image originalImage) {
+    final grayImage =
+        img.Image(width: originalImage.width, height: originalImage.height);
+    for (int y = 0; y < originalImage.height; y++) {
+      for (int x = 0; x < originalImage.width; x++) {
+        img.Pixel pixel = originalImage.getPixel(x, y);
+        int blue = pixel.getChannel(img.Channel.blue).toInt();
+        grayImage.setPixel(x, y, img.ColorRgb8(blue, blue, blue));
+      }
+    }
+    return grayImage;
   }
 
   Future<void> _processImage() async {
@@ -32,10 +44,12 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     });
 
     img.Image originalImage = widget.detectionResults.image;
-    img.Image? detectedImage = img.decodeImage(widget.detectionResults.imageDetected);
+    img.Image? detectedImage =
+        img.decodeImage(widget.detectionResults.imageDetected);
     List<int> boxCoords = widget.detectionResults.box;
 
-    assert(detectedImage?.width == 320 && detectedImage?.height == 320, "Detected image dimensions are not 320x320");
+    assert(detectedImage?.width == 320 && detectedImage?.height == 320,
+        "Detected image dimensions are not 320x320");
 
     log("Original image dimensions: ${originalImage.width}x${originalImage.height}");
     log("Detected image dimensions: ${detectedImage!.width}x${detectedImage.height}");
@@ -57,25 +71,29 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     log("Scalars: x=$scaleX, y=$scaleY");
     log("Cropping image at: x=$x1, y=$y1, width=$width, height=$height");
 
-    croppedImage = img.copyCrop(
-        originalImage,
-        x: x1,
-        y: y1,
-        width: width,
-        height: height
-    );
+    var croppedImage =
+        img.copyCrop(originalImage, x: x1, y: y1, width: width, height: height);
 
-    croppedImage = img.grayscale(croppedImage);
+    var resizedImage = img.copyResizeCropSquare(croppedImage, size: 300);
+    var grayscaleImage = toGrayscaleUsingBlueChannel(resizedImage);
+    var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 300);
+
+    img.Image img0 = normalizedImage;
+    img.Image img45 = normalizedImage;
+    img.Image img90 = normalizedImage;
+    img.Image img135 = normalizedImage;
+    img0 = img.gaussianBlur(img0, radius: 2);
+
+    // croppedImage = img.grayscale(croppedImage);
     // croppedImage = img.contrast(croppedImage, contrast: 160);
-    croppedImage = img.gaussianBlur(croppedImage, radius: 1);
+    // croppedImage = img.gaussianBlur(croppedImage, radius: 1);
 
     // Other potential manipulations:
 
-    croppedImage = img.sobel(croppedImage,amount: 1);
+    // croppedImage = img.sobel(croppedImage, amount: 1);
     // croppedImage = img.luminanceThreshold(croppedImage, threshold: 0.76);
 
-
-    encodedImage = Uint8List.fromList(img.encodeJpg(croppedImage));
+    encodedImage = Uint8List.fromList(img.encodeJpg(img0));
 
     await Future.delayed(Duration(seconds: 1));
 
@@ -97,18 +115,18 @@ class _ResultsWidgetState extends State<ResultsWidget> {
       body: SingleChildScrollView(
         child: Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                if (_isLoading)
-                  Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF1D1B17),
-                    ),
-                  )
-                else
-                  Image.memory(encodedImage)
-              ],
-            )),
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            if (_isLoading)
+              Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFF1D1B17),
+                ),
+              )
+            else
+              Image.memory(encodedImage)
+          ],
+        )),
       ),
     );
   }
