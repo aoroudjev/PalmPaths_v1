@@ -26,9 +26,12 @@ There are two ways you can run this project. You can either clone it to AndroidS
 
 Once installed...
 
-- Open the App to the main menu: ![Alt text](usage_images/main_menu.png)
-- Press start to go to the Detection menu: ![Alt text](usage_images/detector_menu.png)
-- Using the icon buttons at the bottom, either take a picture with your camera or upload and existing image. The app will run detection on the image to find a palm. If a palm is found, it will be boxed with a green square. If a palm is not found the app will assume the whole image is the palm for the next steps. ![Alt text](usage_images/example_detection.png)
+- Open the App to the main menu: 
+![Alt text](usage_images/main_menu.png)
+- Press start to go to the Detection menu: 
+![Alt text](usage_images/detector_menu.png)
+- Using the icon buttons at the bottom, either take a picture with your camera or upload and existing image. The app will run detection on the image to find a palm. If a palm is found, it will be boxed with a green square. If a palm is not found the app will assume the whole image is the palm for the next steps. 
+![Alt text](usage_images/example_detection.png)
 - Press the now visible confirm check mark.
 - This will take you to the final results screen where the inference will be done on the palm/image given.
 
