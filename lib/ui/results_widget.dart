@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
-import '../services/object_detection.dart';
+import '../services/detection_service.dart';
 
 class ResultsWidget extends StatefulWidget {
   final Detection detectionResults;
