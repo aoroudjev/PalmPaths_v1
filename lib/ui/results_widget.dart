@@ -79,9 +79,9 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 300);
 
     img.Image img0 = normalizedImage;
-    img.Image img45 = normalizedImage;
-    img.Image img90 = normalizedImage;
-    img.Image img135 = normalizedImage;
+    // img.Image img45 = normalizedImage;
+    // img.Image img90 = normalizedImage;
+    // img.Image img135 = normalizedImage;
     img0 = img.gaussianBlur(img0, radius: 2);
 
     // croppedImage = img.grayscale(croppedImage);
