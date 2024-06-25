@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math';
 
 import 'package:image/image.dart' as img;
@@ -17,44 +18,51 @@ class ImageAlgorithms {
     return grayImage;
   }
 
-  img.Image FiFilter(img.Image originalImage, List<List<int>> filterMatrix) {
-    // example filter matrix: var f0FilterMatrix =
-    //                          [[0,0,0,0,0],
-    //                           [0,0,0,0,0],
-    //                           [1,1,1,1,1],
-    //                           [0,0,0,0,0],
-    //                           [0,0,0,0,0],];
+  img.Image fiFilter(img.Image sourceImage, List<List<int>> filterMatrix) {
+    // Applies Fi filter using a specified filter matrix, typically to emphasize certain directions.
+    // The filter matrix is assumed to be 5x5. This function simulates the effect of a directional average filter.
+    // Example filter matrix used to emphasize horizontal lines:
+    // [
+    //   [0,0,0,0,0],
+    //   [0,0,0,0,0],
+    //   [1,1,1,1,1],  // This row will contribute to the filtered image
+    //   [0,0,0,0,0],
+    //   [0,0,0,0,0],
+    // ]
 
-    num getFilterMean(int row, int col) {
-      var channelValue = 0.0; // No need for multiple channels; we only use blue channel values.
+    double getFilterMean(int imgRow, int imgCol) {
+      double channelValueSum = 0;
+      int count = 0;
 
-      for (int i = 0; i < 5; i++) {
-        for (int j = 0; j < 5; j++) {
-          if (filterMatrix[i][j] == 1) {
-            var nx = row + j;
-            var ny = col + i;
+      for (int matrixRow = 0; matrixRow < 5; matrixRow++) {
+        for (int matrixCol = 0; matrixCol < 5; matrixCol++) {
+          if (filterMatrix[matrixRow][matrixCol] == 1) {
+            int nx = imgRow + matrixRow - 2; // Center the filter matrix at (imgRow, imgCol)
+            int ny = imgCol + matrixCol - 2;
 
-            if ((nx <= originalImage.width && nx >= 0) ||
-                (ny <= originalImage.height && nx >= 0)) {
-
-              channelValue += originalImage.getPixel(nx, ny).getChannel(img.Channel.blue);
-              log(channelValue);
+            // Ensure the indices are within the image bounds
+            if (nx >= 0 && nx < sourceImage.height && ny >= 0 && ny < sourceImage.width) {
+              channelValueSum += sourceImage.getPixel(ny, nx).getChannel(img.Channel.blue); // Extract the blue channel
+              count++;
             }
           }
         }
       }
-      return channelValue/5;
+
+      return count > 0 ? channelValueSum / count : 0; // Return the average or 0 if count is zero
     }
 
-    final FiImage =
-        img.Image(width: originalImage.width, height: originalImage.height);
-    for (int row = 0; row <= originalImage.height; row++) {
-      for (int col = 0; col <= originalImage.width; col++) {
-        var averageValue = getFilterMean(row, col);
-        FiImage.setPixelRgb(row, col, averageValue, averageValue, averageValue);
+    // Create a new image with the same dimensions as the source image
+    final fiImage = img.Image(width: sourceImage.width, height: sourceImage.height);
+
+    // Apply the filter to each pixel in the source image
+    for (int row = 0; row < sourceImage.height; row++) {
+      for (int col = 0; col < sourceImage.width; col++) {
+        int averageValue = getFilterMean(row, col).round();
+        fiImage.setPixelRgb(col, row, averageValue, averageValue, averageValue);
       }
     }
 
-    return FiImage;
+    return fiImage;
   }
 }

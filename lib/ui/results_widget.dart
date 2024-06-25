@@ -68,38 +68,35 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
     var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 300);
 
-    // var f0FilterMatrix = [[0,0,0,0,0],
-    //                       [0,0,0,0,0],
-    //                       [1,1,1,1,1],
-    //                       [0,0,0,0,0],
-    //                       [0,0,0,0,0],];
-    //
+    var f0FilterMatrix = [[0,0,0,0,0],
+                          [0,0,0,0,0],
+                          [1,1,1,1,1],
+                          [0,0,0,0,0],
+                          [0,0,0,0,0],];
+
     var f45FilterMatrix =  [[0,0,0,0,1],
                             [0,0,0,1,0],
                             [0,0,1,0,0],
                             [0,1,0,0,0],
                             [1,0,0,0,0],];
-    //
-    // var f90FilterMatrix =  [[0,0,1,0,0],
-    //                         [0,0,1,0,0],
-    //                         [0,0,1,0,0],
-    //                         [0,0,1,0,0],
-    //                         [0,0,1,0,0],];
-    //
-    // var f135FilterMatrix = [[1,0,0,0,0],
-    //                         [0,1,0,0,0],
-    //                         [0,0,1,0,0],
-    //                         [0,0,0,1,0],
-    //                         [0,0,0,0,1],];
+
+    var f90FilterMatrix =  [[0,0,1,0,0],
+                            [0,0,1,0,0],
+                            [0,0,1,0,0],
+                            [0,0,1,0,0],
+                            [0,0,1,0,0],];
+
+    var f135FilterMatrix = [[1,0,0,0,0],
+                            [0,1,0,0,0],
+                            [0,0,1,0,0],
+                            [0,0,0,1,0],
+                            [0,0,0,0,1],];
 
 
-    img.Image img0 = normalizedImage;
-    // img.Image img45 = normalizedImage;
-    // img.Image img90 = normalizedImage;
-    // img.Image img135 = normalizedImage;
-    
-    log("FINAL SPECS:\nWIDTH: ${img0.width}\nHEIGHT: ${img0.height}");
-    // img0 = imgAlgos.FiFilter(img0, f45FilterMatrix);
+    img.Image img0 = imgAlgos.fiFilter(normalizedImage, f0FilterMatrix);
+    img.Image img45 = imgAlgos.fiFilter(normalizedImage, f45FilterMatrix);
+    img.Image img90 = imgAlgos.fiFilter(normalizedImage, f90FilterMatrix);
+    img.Image img135 = imgAlgos.fiFilter(normalizedImage, f135FilterMatrix);
 
     // croppedImage = img.grayscale(croppedImage);
     // var contrastImage = img.contrast(img0, contrast: 160);
@@ -109,7 +106,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     // var sobelImage = img.sobel(contrastImage, amount: 1);
     // var luminaceImage = img.luminanceThreshold(sobelImage, threshold: 0.60);
 
-    encodedImage = Uint8List.fromList(img.encodeJpg(img0));
+    encodedImage = Uint8List.fromList(img.encodeJpg(img135));
 
     await Future.delayed(Duration(seconds: 1));
 
