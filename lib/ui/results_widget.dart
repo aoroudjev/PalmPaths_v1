@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:flutter/material.dart';
 import '../services/detection_service.dart';
+import '../services/inference_service.dart';
 
 class ResultsWidget extends StatefulWidget {
   final Detection detectionResults;
@@ -17,24 +18,12 @@ class ResultsWidget extends StatefulWidget {
 class _ResultsWidgetState extends State<ResultsWidget> {
   bool _isLoading = true;
   late Uint8List encodedImage;
+  ImageAlgorithms imgAlgos = ImageAlgorithms();
 
   @override
   void initState() {
     super.initState();
     _processImage();
-  }
-
-  img.Image toGrayscaleUsingBlueChannel(img.Image originalImage) {
-    final grayImage =
-        img.Image(width: originalImage.width, height: originalImage.height);
-    for (int y = 0; y < originalImage.height; y++) {
-      for (int x = 0; x < originalImage.width; x++) {
-        img.Pixel pixel = originalImage.getPixel(x, y);
-        int blue = pixel.getChannel(img.Channel.blue).toInt();
-        grayImage.setPixel(x, y, img.ColorRgb8(blue, blue, blue));
-      }
-    }
-    return grayImage;
   }
 
   Future<void> _processImage() async {
@@ -74,24 +63,51 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     var croppedImage =
         img.copyCrop(originalImage, x: x1, y: y1, width: width, height: height);
 
+    // Begin palm line extraction
     var resizedImage = img.copyResizeCropSquare(croppedImage, size: 300);
-    var grayscaleImage = toGrayscaleUsingBlueChannel(resizedImage);
+    var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
     var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 300);
+
+    // var f0FilterMatrix = [[0,0,0,0,0],
+    //                       [0,0,0,0,0],
+    //                       [1,1,1,1,1],
+    //                       [0,0,0,0,0],
+    //                       [0,0,0,0,0],];
+    //
+    var f45FilterMatrix =  [[0,0,0,0,1],
+                            [0,0,0,1,0],
+                            [0,0,1,0,0],
+                            [0,1,0,0,0],
+                            [1,0,0,0,0],];
+    //
+    // var f90FilterMatrix =  [[0,0,1,0,0],
+    //                         [0,0,1,0,0],
+    //                         [0,0,1,0,0],
+    //                         [0,0,1,0,0],
+    //                         [0,0,1,0,0],];
+    //
+    // var f135FilterMatrix = [[1,0,0,0,0],
+    //                         [0,1,0,0,0],
+    //                         [0,0,1,0,0],
+    //                         [0,0,0,1,0],
+    //                         [0,0,0,0,1],];
+
 
     img.Image img0 = normalizedImage;
     // img.Image img45 = normalizedImage;
     // img.Image img90 = normalizedImage;
     // img.Image img135 = normalizedImage;
-    img0 = img.gaussianBlur(img0, radius: 2);
+    
+    log("FINAL SPECS:\nWIDTH: ${img0.width}\nHEIGHT: ${img0.height}");
+    // img0 = imgAlgos.FiFilter(img0, f45FilterMatrix);
 
     // croppedImage = img.grayscale(croppedImage);
-    // croppedImage = img.contrast(croppedImage, contrast: 160);
+    // var contrastImage = img.contrast(img0, contrast: 160);
     // croppedImage = img.gaussianBlur(croppedImage, radius: 1);
 
     // Other potential manipulations:
-
-    // croppedImage = img.sobel(croppedImage, amount: 1);
-    // croppedImage = img.luminanceThreshold(croppedImage, threshold: 0.76);
+    // var sobelImage = img.sobel(contrastImage, amount: 1);
+    // var luminaceImage = img.luminanceThreshold(sobelImage, threshold: 0.60);
 
     encodedImage = Uint8List.fromList(img.encodeJpg(img0));
 
