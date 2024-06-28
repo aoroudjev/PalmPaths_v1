@@ -80,8 +80,8 @@ class ImageAlgorithms {
         for (int matrixRow = 0; matrixRow < filterMatrix.length; matrixRow++) {
           for (int matrixCol = 0; matrixCol < filterMatrix[matrixRow].length; matrixCol++) {
             if (filterMatrix[matrixRow][matrixCol]!=1){continue;};
-            int nx = y + matrixRow - 2;
-            int ny = x + matrixCol - 2;
+            int nx = y + matrixRow - halfSize;
+            int ny = x + matrixCol - halfSize;
 
             if (nx >= 0 &&
                 nx < image.height &&
