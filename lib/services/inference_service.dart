@@ -1,10 +1,6 @@
-import 'dart:developer';
-import 'dart:math';
-
 import 'package:image/image.dart' as img;
 
 class ImageAlgorithms {
-
   img.Image toGrayscaleUsingBlueChannel(img.Image originalImage) {
     final grayImage =
         img.Image(width: originalImage.width, height: originalImage.height);
@@ -31,31 +27,36 @@ class ImageAlgorithms {
     // ]
 
     double getFilterMean(int imgRow, int imgCol) {
-      double channelValueSum = 0;
+      double channelValueSum = 0; // Only looking at blue channel; we normalized earlier
       int count = 0;
+      int halfSize = filterMatrix.length ~/ 2;
 
-      for (int matrixRow = 0; matrixRow < 5; matrixRow++) {
-        for (int matrixCol = 0; matrixCol < 5; matrixCol++) {
+      for (int matrixRow = 0; matrixRow < filterMatrix.length; matrixRow++) {
+        for (int matrixCol = 0;
+            matrixCol < filterMatrix[matrixRow].length;
+            matrixCol++) {
           if (filterMatrix[matrixRow][matrixCol] == 1) {
-            int nx = imgRow + matrixRow - 2; // Center the filter matrix at (imgRow, imgCol)
-            int ny = imgCol + matrixCol - 2;
+            int nx = imgRow + matrixRow - halfSize;
+            int ny = imgCol + matrixCol - halfSize;
 
             // Ensure the indices are within the image bounds
-            if (nx >= 0 && nx < sourceImage.height && ny >= 0 && ny < sourceImage.width) {
-              channelValueSum += sourceImage.getPixel(ny, nx).getChannel(img.Channel.blue); // Extract the blue channel
+            if (nx >= 0 &&
+                nx < sourceImage.height &&
+                ny >= 0 &&
+                ny < sourceImage.width) {
+              channelValueSum += sourceImage.getPixel(ny, nx).getChannel(img.Channel.blue);
               count++;
             }
           }
         }
       }
 
-      return count > 0 ? channelValueSum / count : 0; // Return the average or 0 if count is zero
+      return count > 0 ? channelValueSum / count : 0;
     }
 
-    // Create a new image with the same dimensions as the source image
-    final fiImage = img.Image(width: sourceImage.width, height: sourceImage.height);
+    final fiImage =
+        img.Image(width: sourceImage.width, height: sourceImage.height);
 
-    // Apply the filter to each pixel in the source image
     for (int row = 0; row < sourceImage.height; row++) {
       for (int col = 0; col < sourceImage.width; col++) {
         int averageValue = getFilterMean(row, col).round();
@@ -64,5 +65,56 @@ class ImageAlgorithms {
     }
 
     return fiImage;
+  }
+
+  img.Image bottomHatFilter(img.Image image, List<List<int>> filterMatrix) {
+    final dilatedImage = img.Image(width: image.width, height: image.height);
+    final erodedImage = img.Image(width: image.width, height: image.height);
+    final resultTestImage = img.Image(width: image.width, height: image.height);
+    final halfSize = filterMatrix.length ~/ 2;
+
+    for (int y = 0; y < image.height; y++) {
+      for (int x = 0; x < image.width; x++) {
+        num maxVal = 0;
+        num minVal = 1000;
+        for (int matrixRow = 0; matrixRow < filterMatrix.length; matrixRow++) {
+          for (int matrixCol = 0; matrixCol < filterMatrix[matrixRow].length; matrixCol++) {
+            if (filterMatrix[matrixRow][matrixCol]!=1){continue;};
+            int nx = y + matrixRow - 2;
+            int ny = x + matrixCol - 2;
+
+            if (nx >= 0 &&
+                nx < image.height &&
+                ny >= 0 &&
+                ny < image.width) {
+            var currVal = image.getPixel(ny, nx).getChannel(img.Channel.blue);
+            maxVal = (currVal > maxVal) ? currVal : maxVal;
+            minVal = (currVal < minVal) ? currVal : minVal;
+            }
+          }
+        }
+        var resultVal = maxVal-minVal;
+        resultTestImage.setPixelRgb(x, y, resultVal, resultVal, resultVal);
+        dilatedImage.setPixelRgb(x, y, maxVal, maxVal, maxVal);
+        erodedImage.setPixelRgb(x, y, minVal, minVal, minVal);
+      }
+    }
+
+    return resultTestImage;
+  }
+
+  img.Image combineBottomHatResults(List<img.Image> images) {
+    final combinedImage = img.Image(width: images[0].width, height: images[0].height);
+    for (int y = 0; y < combinedImage.height; y++) {
+      for (int x = 0; x < combinedImage.width; x++) {
+        num sum = 0;
+        for (final image in images) {
+          sum += image.getPixel(x, y).getChannel(img.Channel.blue);
+        }
+        int combinedValue = sum ~/ images.length;
+        combinedImage.setPixelRgb(x, y, combinedValue, combinedValue, combinedValue);
+      }
+    }
+    return combinedImage;
   }
 }

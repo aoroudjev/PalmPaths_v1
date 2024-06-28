@@ -35,24 +35,24 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     img.Image originalImage = widget.detectionResults.image;
     img.Image? detectedImage =
         img.decodeImage(widget.detectionResults.imageDetected);
-    List<int> boxCoords = widget.detectionResults.box;
+    List<int> boxCords = widget.detectionResults.box;
 
     assert(detectedImage?.width == 320 && detectedImage?.height == 320,
         "Detected image dimensions are not 320x320");
 
     log("Original image dimensions: ${originalImage.width}x${originalImage.height}");
     log("Detected image dimensions: ${detectedImage!.width}x${detectedImage.height}");
-    log("Box coordinates: $boxCoords");
+    log("Box coordinates: $boxCords");
 
     // Calculate the scaling factors
     double scaleX = originalImage.width / detectedImage.width;
     double scaleY = originalImage.height / detectedImage.height;
 
     // Scale the box coordinates
-    int x1 = (boxCoords[0] * scaleX).round();
-    int y1 = (boxCoords[1] * scaleY).round();
-    int x2 = (boxCoords[2] * scaleX).round();
-    int y2 = (boxCoords[3] * scaleY).round();
+    int x1 = (boxCords[0] * scaleX).round();
+    int y1 = (boxCords[1] * scaleY).round();
+    int x2 = (boxCords[2] * scaleX).round();
+    int y2 = (boxCords[3] * scaleY).round();
 
     int width = x2 - x1;
     int height = y2 - y1;
@@ -66,7 +66,7 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     // Begin palm line extraction
     var resizedImage = img.copyResizeCropSquare(croppedImage, size: 300);
     var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
-    var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 300);
+    var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 255);
 
     var f0FilterMatrix = [[0,0,0,0,0],
                           [0,0,0,0,0],
@@ -98,15 +98,23 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     img.Image img90 = imgAlgos.fiFilter(normalizedImage, f90FilterMatrix);
     img.Image img135 = imgAlgos.fiFilter(normalizedImage, f135FilterMatrix);
 
+
+    img0 = imgAlgos.bottomHatFilter(img0, f0FilterMatrix);
+    img45 = imgAlgos.bottomHatFilter(img45, f45FilterMatrix);
+    img90 = imgAlgos.bottomHatFilter(img90, f90FilterMatrix);
+    img135 = imgAlgos.bottomHatFilter(img135, f135FilterMatrix);
+
+    var combinedImage = imgAlgos.combineBottomHatResults([img0, img45, img90, img135]);
+    var thresholdImage = img.luminanceThreshold(combinedImage, threshold: 0.1);
+
     // croppedImage = img.grayscale(croppedImage);
     // var contrastImage = img.contrast(img0, contrast: 160);
-    // croppedImage = img.gaussianBlur(croppedImage, radius: 1);
 
     // Other potential manipulations:
     // var sobelImage = img.sobel(contrastImage, amount: 1);
     // var luminaceImage = img.luminanceThreshold(sobelImage, threshold: 0.60);
 
-    encodedImage = Uint8List.fromList(img.encodeJpg(img135));
+    encodedImage = Uint8List.fromList(img.encodeJpg(thresholdImage));
 
     await Future.delayed(Duration(seconds: 1));
 
