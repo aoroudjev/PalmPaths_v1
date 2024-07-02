@@ -18,7 +18,7 @@ class ResultsWidget extends StatefulWidget {
 class _ResultsWidgetState extends State<ResultsWidget> {
   bool _isLoading = true;
   late Uint8List encodedImage;
-  ImageAlgorithms imgAlgos = ImageAlgorithms();
+  ImageAlgorithms imgAlgorithms = ImageAlgorithms();
 
   @override
   void initState() {
@@ -65,8 +65,11 @@ class _ResultsWidgetState extends State<ResultsWidget> {
 
     // Begin palm line extraction
     var resizedImage = img.copyResizeCropSquare(croppedImage, size: 300);
-    var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
-    var normalizedImage = img.normalize(grayscaleImage, min: 0, max: 255);
+    img.grayscale(resizedImage);
+    // var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
+    img.normalize(resizedImage, min: 0, max: 255);
+    img.contrast(resizedImage, contrast: 160);
+    img.gaussianBlur(resizedImage, radius: 2);
 
     var f0FilterMatrix = [[0,0,0,0,0],
                           [0,0,0,0,0],
@@ -93,30 +96,27 @@ class _ResultsWidgetState extends State<ResultsWidget> {
                             [0,0,0,0,1],];
 
 
-    img.Image img0 = imgAlgos.fiFilter(normalizedImage, f0FilterMatrix);
-    img.Image img45 = imgAlgos.fiFilter(normalizedImage, f45FilterMatrix);
-    img.Image img90 = imgAlgos.fiFilter(normalizedImage, f90FilterMatrix);
-    img.Image img135 = imgAlgos.fiFilter(normalizedImage, f135FilterMatrix);
+    img.Image img0 = imgAlgorithms.fiFilter(resizedImage, f0FilterMatrix);
+    img.Image img45 = imgAlgorithms.fiFilter(resizedImage, f45FilterMatrix);
+    img.Image img90 = imgAlgorithms.fiFilter(resizedImage, f90FilterMatrix);
+    img.Image img135 = imgAlgorithms.fiFilter(resizedImage, f135FilterMatrix);
 
 
-    img0 = imgAlgos.bottomHatFilter(img0, f0FilterMatrix);
-    img45 = imgAlgos.bottomHatFilter(img45, f45FilterMatrix);
-    img90 = imgAlgos.bottomHatFilter(img90, f90FilterMatrix);
-    img135 = imgAlgos.bottomHatFilter(img135, f135FilterMatrix);
+    img0 = imgAlgorithms.bottomHatFilter(img0, f0FilterMatrix);
+    img45 = imgAlgorithms.bottomHatFilter(img45, f45FilterMatrix);
+    img90 = imgAlgorithms.bottomHatFilter(img90, f90FilterMatrix);
+    img135 = imgAlgorithms.bottomHatFilter(img135, f135FilterMatrix);
 
-    var combinedImage = imgAlgos.combineBottomHatResults([img0, img45, img90, img135]);
+    var combinedImage = imgAlgorithms.combineBottomHatResults([img0, img45, img90, img135]);
     var thresholdImage = img.luminanceThreshold(combinedImage, threshold: 0.1);
 
-    // croppedImage = img.grayscale(croppedImage);
-    // var contrastImage = img.contrast(img0, contrast: 160);
 
     // Other potential manipulations:
-    // var sobelImage = img.sobel(contrastImage, amount: 1);
-    // var luminaceImage = img.luminanceThreshold(sobelImage, threshold: 0.60);
+    img.sobel(resizedImage, amount: 1);
 
     encodedImage = Uint8List.fromList(img.encodeJpg(thresholdImage));
 
-    await Future.delayed(Duration(seconds: 1));
+
 
     // Update
     setState(() {

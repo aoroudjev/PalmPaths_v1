@@ -117,4 +117,5 @@ class ImageAlgorithms {
     }
     return combinedImage;
   }
+
 }
