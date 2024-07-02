@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:image/image.dart' as img;
 
 class ImageAlgorithms {
@@ -118,4 +120,125 @@ class ImageAlgorithms {
     return combinedImage;
   }
 
+  Map<String, int> findCrossSectionIntersections(img.Image image, int numCrossSections){
+    int width = image.width;
+    int height = image.height;
+
+    Map<String, int> intersections = {
+      'heartLine': 0,
+      'headLine': 0,
+      'lifeLine': 0,
+    };
+
+    // Calculate step sizes for multiple cross-sections
+    int stepX = width ~/ (numCrossSections + 1);
+    int stepY = height ~/ (numCrossSections + 1);
+
+    // Detect heart line (top section)
+    for (int section = 1; section <= numCrossSections; section++) {
+      int centerX = stepX * section;
+      for (int y = 0; y < height ~/ 3; y++) {
+        var pixel = image.getPixel(centerX, y);
+        if (img.getLuminance(pixel) > 0) {
+          intersections['heartLine'] = intersections['heartLine']! + 1;
+        }
+      }
+
+      int centerY = stepY * section;
+      for (int x = 0; x < width; x++) {
+        var pixel = image.getPixel(x, centerY);
+        if (centerY < height ~/ 3 && img.getLuminance(pixel) > 0) {
+          intersections['heartLine'] = intersections['heartLine']! + 1;
+        }
+      }
+    }
+
+    // Detect head line (middle section)
+    for (int section = 1; section <= numCrossSections; section++) {
+      int centerX = stepX * section;
+      for (int y = height ~/ 3; y < 2 * (height ~/ 3); y++) {
+        var pixel = image.getPixel(centerX, y);
+        if (img.getLuminance(pixel) > 0) {
+          intersections['headLine'] = intersections['headLine']! + 1;
+        }
+      }
+
+      int centerY = stepY * section;
+      for (int x = 0; x < width; x++) {
+        var pixel = image.getPixel(x, centerY);
+        if (centerY >= height ~/ 3 && centerY < 2 * (height ~/ 3) && img.getLuminance(pixel) > 0) {
+          intersections['headLine'] = intersections['headLine']! + 1;
+        }
+      }
+    }
+
+    // Detect life line (bottom section)
+    for (int section = 1; section <= numCrossSections; section++) {
+      int centerX = stepX * section;
+      for (int y = 2 * (height ~/ 3); y < height; y++) {
+        var pixel = image.getPixel(centerX, y);
+        if (img.getLuminance(pixel) > 0) {
+          intersections['lifeLine'] = intersections['lifeLine']! + 1;
+        }
+      }
+
+      int centerY = stepY * section;
+      for (int x = 0; x < width; x++) {
+        var pixel = image.getPixel(x, centerY);
+        if (centerY >= 2 * (height ~/ 3) && img.getLuminance(pixel) > 0) {
+          intersections['lifeLine'] = intersections['lifeLine']! + 1;
+        }
+      }
+    }
+
+    return intersections;
+  }
+
+  img.Image overlayPalmLines(img.Image originalResizedImage, img.Image binaryLineImage) {
+    for(int x=0; x<originalResizedImage.height; x++){
+      for(int y=0; y<originalResizedImage.width; y++){
+        if(img.getLuminance(binaryLineImage.getPixel(x, y)) > 0){
+          originalResizedImage.setPixelRgb(x, y, 0, 0, 255);
+        }
+      }
+    }
+    return originalResizedImage;
+  }
+
+  String generateFortune(Map<String, int> intersections) {
+    int totalIntersections = intersections.values.reduce((a, b) => a + b);
+
+    double heartLineRatio = intersections['heartLine']! / totalIntersections;
+    double headLineRatio = intersections['headLine']! / totalIntersections;
+    double lifeLineRatio = intersections['lifeLine']! / totalIntersections;
+
+    String fortune = '';
+
+    if (heartLineRatio > 0.5) {
+      fortune += "Your heart line is prominent, indicating strong emotions and relationships. ";
+    } else if (heartLineRatio > 0.3) {
+      fortune += "Your heart line suggests balanced emotions and relationships. ";
+    } else {
+      fortune += "Your heart line indicates calm and controlled emotions. ";
+    }
+
+    if (headLineRatio > 0.5) {
+      fortune += "Your head line is dominant, showing an active and sharp mind. ";
+    } else if (headLineRatio > 0.3) {
+      fortune += "Your head line suggests a balanced and thoughtful nature. ";
+    } else {
+      fortune += "Your head line indicates a reflective and contemplative mindset. ";
+    }
+
+    if (lifeLineRatio > 0.5) {
+      fortune += "Your life line is strong, indicating vitality and a strong connection to life. ";
+    } else if (lifeLineRatio > 0.3) {
+      fortune += "Your life line suggests a balanced approach to life. ";
+    } else {
+      fortune += "Your life line indicates a relaxed and easygoing nature. ";
+    }
+    return fortune;
+
+
+  }
 }

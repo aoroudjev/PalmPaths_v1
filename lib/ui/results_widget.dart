@@ -18,6 +18,7 @@ class ResultsWidget extends StatefulWidget {
 class _ResultsWidgetState extends State<ResultsWidget> {
   bool _isLoading = true;
   late Uint8List encodedImage;
+  late String fortune;
   ImageAlgorithms imgAlgorithms = ImageAlgorithms();
 
   @override
@@ -34,14 +35,16 @@ class _ResultsWidgetState extends State<ResultsWidget> {
 
     img.Image originalImage = widget.detectionResults.image;
     img.Image? detectedImage =
-        img.decodeImage(widget.detectionResults.imageDetected);
+    img.decodeImage(widget.detectionResults.imageDetected);
     List<int> boxCords = widget.detectionResults.box;
 
     assert(detectedImage?.width == 320 && detectedImage?.height == 320,
-        "Detected image dimensions are not 320x320");
+    "Detected image dimensions are not 320x320");
 
-    log("Original image dimensions: ${originalImage.width}x${originalImage.height}");
-    log("Detected image dimensions: ${detectedImage!.width}x${detectedImage.height}");
+    log("Original image dimensions: ${originalImage.width}x${originalImage
+        .height}");
+    log("Detected image dimensions: ${detectedImage!.width}x${detectedImage
+        .height}");
     log("Box coordinates: $boxCords");
 
     // Calculate the scaling factors
@@ -61,61 +64,72 @@ class _ResultsWidgetState extends State<ResultsWidget> {
     log("Cropping image at: x=$x1, y=$y1, width=$width, height=$height");
 
     var croppedImage =
-        img.copyCrop(originalImage, x: x1, y: y1, width: width, height: height);
+    img.copyCrop(originalImage, x: x1, y: y1, width: width, height: height);
 
     // Begin palm line extraction
     var resizedImage = img.copyResizeCropSquare(croppedImage, size: 300);
-    img.grayscale(resizedImage);
-    // var grayscaleImage = imgAlgos.toGrayscaleUsingBlueChannel(resizedImage);
-    img.normalize(resizedImage, min: 0, max: 255);
-    img.contrast(resizedImage, contrast: 160);
-    img.gaussianBlur(resizedImage, radius: 2);
+    // img.grayscale(resizedImage);
+    resizedImage = imgAlgorithms.toGrayscaleUsingBlueChannel(resizedImage);
+    img.normalize(resizedImage, min: 0, max: 230);
+    img.contrast(resizedImage, contrast: 150);
+    img.gaussianBlur(resizedImage, radius: 1);
 
-    var f0FilterMatrix = [[0,0,0,0,0],
-                          [0,0,0,0,0],
-                          [1,1,1,1,1],
-                          [0,0,0,0,0],
-                          [0,0,0,0,0],];
+    var f0FilterMatrix = [[0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ];
 
-    var f45FilterMatrix =  [[0,0,0,0,1],
-                            [0,0,0,1,0],
-                            [0,0,1,0,0],
-                            [0,1,0,0,0],
-                            [1,0,0,0,0],];
+    var f45FilterMatrix = [[0, 0, 0, 0, 1],
+      [0, 0, 0, 1, 0],
+      [0, 0, 1, 0, 0],
+      [0, 1, 0, 0, 0],
+      [1, 0, 0, 0, 0],
+    ];
 
-    var f90FilterMatrix =  [[0,0,1,0,0],
-                            [0,0,1,0,0],
-                            [0,0,1,0,0],
-                            [0,0,1,0,0],
-                            [0,0,1,0,0],];
+    var f90FilterMatrix = [[0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 1, 0, 0],
+    ];
 
-    var f135FilterMatrix = [[1,0,0,0,0],
-                            [0,1,0,0,0],
-                            [0,0,1,0,0],
-                            [0,0,0,1,0],
-                            [0,0,0,0,1],];
-
+    var f135FilterMatrix = [[1, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 1],
+    ];
 
     img.Image img0 = imgAlgorithms.fiFilter(resizedImage, f0FilterMatrix);
     img.Image img45 = imgAlgorithms.fiFilter(resizedImage, f45FilterMatrix);
     img.Image img90 = imgAlgorithms.fiFilter(resizedImage, f90FilterMatrix);
     img.Image img135 = imgAlgorithms.fiFilter(resizedImage, f135FilterMatrix);
 
-
     img0 = imgAlgorithms.bottomHatFilter(img0, f0FilterMatrix);
     img45 = imgAlgorithms.bottomHatFilter(img45, f45FilterMatrix);
     img90 = imgAlgorithms.bottomHatFilter(img90, f90FilterMatrix);
     img135 = imgAlgorithms.bottomHatFilter(img135, f135FilterMatrix);
 
-    var combinedImage = imgAlgorithms.combineBottomHatResults([img0, img45, img90, img135]);
+    var combinedImage = imgAlgorithms.combineBottomHatResults(
+        [img0, img45, img90, img135]);
     var thresholdImage = img.luminanceThreshold(combinedImage, threshold: 0.1);
+    var outlinedLines = imgAlgorithms.overlayPalmLines(
+        img.copyResizeCropSquare(croppedImage, size: 300), thresholdImage);
+
+    // Analyze lines
+    Map<String, int> intersections = imgAlgorithms
+        .findCrossSectionIntersections(thresholdImage, 5);
+    print('Heart Line Intersections: ${intersections['heartLine']}');
+    print('Head Line Intersections: ${intersections['headLine']}');
+    print('Life Line Intersections: ${intersections['lifeLine']}');
 
 
-    // Other potential manipulations:
-    img.sobel(resizedImage, amount: 1);
+    encodedImage = Uint8List.fromList(img.encodeJpg(outlinedLines));
 
-    encodedImage = Uint8List.fromList(img.encodeJpg(thresholdImage));
-
+    // Get fortune
+    fortune = imgAlgorithms.generateFortune(intersections);
 
 
     // Update
@@ -126,7 +140,6 @@ class _ResultsWidgetState extends State<ResultsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Assuming Detection has fields like title, description, and maybe an image
     return Scaffold(
       appBar: AppBar(
         title: Text('Detection Results'),
@@ -135,19 +148,53 @@ class _ResultsWidgetState extends State<ResultsWidget> {
       backgroundColor: Color(0xFFDAD3C1),
       body: SingleChildScrollView(
         child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            if (_isLoading)
-              Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFF1D1B17),
-                ),
-              )
-            else
-              Image.memory(encodedImage)
-          ],
-        )),
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                if (_isLoading)
+                  CircularProgressIndicator(
+                    color: Color(0xFF1D1B17),
+                  )
+                else
+                  Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.memory(encodedImage),
+                        ),
+                      ),
+                      SizedBox(height: 16.0),
+                      Text(
+                        'Based on the analysis of your palm lines:',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8.0),
+                      Text(
+                        fortune,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
