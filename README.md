@@ -46,4 +46,5 @@ Once installed...
 - Press the now visible confirm check mark.
 - This will take you to the final results screen where the inference will be done on the palm/image given.
 
-[//]: # (TODO: Finish)
+
+![Alt text](usage_images/results_menu.png)
