@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:image/image.dart' as img;
 
 class ImageAlgorithms {
