@@ -2,6 +2,10 @@
 
 An initial implementation of the PalmPaths project. A simpler approach and design centered around functionality rather than user experience.
 
+The palm line extraction was done largely done in an original method but was also inspired by this paper:
+A. Bruno, P. Carminetti, V. Gentile, M. La Cascia and E. Mancino, "Palmprint principal lines extraction," 2014 IEEE Workshop on Biometric Measurements and Systems for Security and Medical Applications (BIOMS) Proceedings, Rome, Italy, 2014, pp. 50-56, doi: 10.1109/BIOMS.2014.6951535.
+keywords: {Feature extraction;Filtering;Gray-scale;Noise;Accuracy;Detectors;Data mining;Palmprint;Palm line extraction;segmentation;biometric},
+
 ## Requirements
 
 This project requires the following to run on AndroidStudio:
