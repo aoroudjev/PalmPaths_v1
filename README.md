@@ -1,6 +1,6 @@
 # PalmPaths_v1
 
-An initial implementation of the PalmPaths project. A simpler approach and design centered around functionality rather than user experience.
+An initial, but now complete, implementation of the PalmPaths project. A simpler approach and design centered around functionality rather than user experience.
 
 The palm line extraction was largely done in an original method but was also inspired by this paper:
 
